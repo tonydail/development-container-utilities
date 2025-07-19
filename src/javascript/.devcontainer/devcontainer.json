@@ -1,0 +1,69 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/alpine
+{
+  "name": "${localWorkspaceFolderBasename}",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "initializeCommand": "bash -l .devcontainer/initializeCommand.sh ${localWorkspaceFolderBasename} ${localWorkspaceFolder}",
+  "dockerComposeFile": "docker-compose.yaml",
+  "service": "code_container",
+  "workspaceFolder": "/${localWorkspaceFolderBasename}",
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "nodeGypDependencies": true,
+      "version": "18",
+      "nvmVersion": "lts"
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/jshint:2": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "streetsidesoftware.code-spell-checker",
+        "visualstudioexptteam.vscodeintellicode",
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "xabikos.JavaScriptSnippets",
+        "formulahendry.auto-rename-tag",
+        "formulahendry.auto-close-tag",
+        "formulahendry.auto-complete-tag",
+        "ecmel.vscode-html-css",
+        "ms-azuretools.vscode-docker",
+        "GitHub.vscode-pull-request-github",
+        "github.vscode-github-actions",
+        "christian-kohler.npm-intellisense",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "achil.vscode-javascript-repl",
+        "t-sauer.vscode-babel-repl",
+        "xqchen.yarn-ui",
+        "Postman.postman-for-vscode",
+        "carlosjs23.vscode-yarn-script",
+        "gamunu.vscode-yarn",
+        "idered.npm",
+        "jasonnutter.search-node-modules",
+        "lostfields.nodejs-repl",
+        "samundrak.esdoc-mdn",
+        "CoryGross.vscode-mdn-docs",
+        "tomoki1207.pdf",
+        "yzhang.markdown-all-in-one",
+        "EbenezerDon.npm-studio",
+        "EditorConfig.EditorConfig",
+        "redhat.vscode-yaml",
+        "mikestead.dotenv",
+        "aaron-bond.better-comments",
+        "alefragnani.Bookmarks",
+        "moshfeu.compare-folders",
+        "yy0931.vscode-sqlite3-editor",
+        "Shynet.vscode-taskkill",
+        "Atlassian.atlascode",
+        "crhistianr.jira-issues"
+      ]
+    }
+  }
+}

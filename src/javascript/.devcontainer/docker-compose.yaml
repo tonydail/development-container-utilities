@@ -1,0 +1,24 @@
+services:
+  code_container:
+    image: mcr.microsoft.com/devcontainers/base:bullseye
+    tty: true
+    command: sh
+    volumes_from:
+      - code_sync
+    # volumes:
+    #   - type: bind
+    #     source: /Users/tony/.ssh
+    #     target: /home/vscode/.ssh
+  code_sync:
+    build: .
+    volumes:
+      - sync_data:/development-container-utilities
+      - unison:/unison
+      # - type: bind
+      #   source: /Users/tony/.ssh
+      #   target: /home/unison/.ssh
+    ports:
+      - 5555:5555
+volumes:
+  sync_data:
+  unison:
