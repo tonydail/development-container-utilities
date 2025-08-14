@@ -1,0 +1,32 @@
+services:
+  code_container:
+    image: mcr.microsoft.com/devcontainers/base:bullseye
+    tty: true
+    command: sh
+    volumes_from:
+      - code_sync
+  code_sync:
+    image: ghcr.io/tonydail/unison-sync:latest
+    pull_policy: always
+    environment:
+      - SSH_AUTH_SOCK="/run/host-services/ssh-auth.sock"
+      - REMOTE_UNISON_SERVER_SYNC_PATH=/Users/tony/projects/development-container-utilities
+      - REMOTE_UNISON_SERVER_PATH=/usr/local/bin/unison
+      - REMOTE_SSH_USER=tony
+      - SYNC_FOLDER=/development-container-utilities
+      - UNISON_SSH_KEY_NAME=id_unison_sync_key
+    volumes:
+      - sync_data:/development-container-utilities
+      - unison:/unison
+      - type: bind
+        source: ~/.ssh/id_unison_sync_key
+        target: /home/unison/.ssh/id_unison_sync_key
+      - type: bind
+        source: ~/.ssh/id_unison_sync_key.pub
+        target: /home/unison/.ssh/id_unison_sync_key.pub
+    
+    ports:
+      - 5555:5555
+volumes:
+  sync_data:
+  unison:

@@ -27,7 +27,7 @@ print_error() {
 }
 
 # Directory containing subfolders
-BASE_DIR="./src"
+BASE_DIR="./templates"
 
 # Get list of subfolders
 folders=("$BASE_DIR"/*/)
@@ -54,7 +54,7 @@ fi
 
 # Get selected folder
 selected_folder="${folders[$((selection-1))]}"
-fullpath_source=$(realpath $selected_folder/.devcontainer)
+fullpath_source=$(realpath $selected_folder)
 fullpath_target=$(realpath .)
 fullpath_target="$fullpath_target/.devcontainer"
 createlink="n"
