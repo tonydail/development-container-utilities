@@ -1,0 +1,108 @@
+#!/bin/bash
+
+
+CURRENT_DIR="$PWD"
+SCRIPT_PATH=$(dirname "$0")
+TEMPLATES_DIR="$SCRIPT_PATH/templates"
+COMMON_TEMPLATES_DIR="$SCRIPT_PATH/common_templates"
+BACK_TITLE="Development Container Template Manager"
+
+
+main_menu() {
+    while true; do
+        CHOICE=$(dialog --clear --backtitle "$BACK_TITLE" \
+            --title "Main Menu" \
+            --menu "Choose an action:" 15 50 4 \
+            1 "Apply Template" \
+            2 "Save as a Template" \
+            3 "Delete Template" \
+            4 "Exit" \
+            2>&1 >/dev/tty)
+
+        case $CHOICE in
+            1)
+                apply_template
+                ;;
+            2)
+                dialog --msgbox "Save Template selected." 6 40
+                ;;
+            3)
+                dialog --msgbox "Delete Template selected." 6 40
+                ;;
+            4)
+                clear
+                break
+                ;;
+        esac
+    done
+}
+
+apply_template() {
+    # List template directories
+    TEMPLATES=()
+    for dir in "$TEMPLATES_DIR"/*/; do
+        [ -d "$dir" ] || continue
+        name=$(basename "$dir")
+        TEMPLATES+=("$name" "")
+    done
+
+    if [ ${#TEMPLATES[@]} -eq 0 ]; then
+        dialog --msgbox "No templates found." 6 40
+        return
+    fi
+
+    TEMPLATE=$(dialog --clear --backtitle "$BACK_TITLE" \
+        --title "Select Template" \
+        --menu "Choose a template:" 15 50 6 \
+        "${TEMPLATES[@]}" \
+        2>&1 >/dev/tty)
+
+    [ -z "$TEMPLATE" ] && return
+
+    # Folder selection dialog
+    DEST=$(dialog --backtitle "$BACK_TITLE" --dselect "$CURRENT_DIR/" 10 60 2>&1 >/dev/tty)
+    [ -z "$DEST" ] && return
+
+
+    if dialog --yesno  "Template '$TEMPLATE' will be applied to '$DEST'.\nDo you want to continue?" 7 80; then
+
+        if [ ! -d "$COMMON_TEMPLATES_DIR" ]; then
+            dialog --msgbox "$COMMON_TEMPLATES_DIR not found!" 6 60
+            return
+        fi
+
+        if [ ! -d "$TEMPLATES_DIR/$TEMPLATE" ]; then
+        dialog --msgbox "$TEMPLATES_DIR/$TEMPLATE not found!" 6 60
+        return
+        fi
+
+        if [ ! -d "$DEST" ]; then
+            dialog --msgbox "The selected destination is not a valid directory." 6 60
+            return
+        else
+            if  ! mkdir -p "$DEST/.devcontainer" 
+            then
+                dialog --msgbox "Unable to create .devcontainer folder." 6 60
+                return
+            else
+                ls "$DEST/.devcontainer"
+            fi
+        fi
+
+        local canproceed=true
+        if [ "$(ls -A $DEST/.devcontainer)" ]; then
+            if dialog  --yesno "$DEST/.devcontainer is not empty. Do you want to overwrite its contents?" 7 80; then
+                rm -rf "$DEST/.devcontainer"/*
+            else
+                canproceed=false
+            fi
+        fi
+
+        if [ "$canproceed" = true ]; then
+            cp -af $COMMON_TEMPLATES_DIR/. "$DEST/.devcontainer/" 2>/dev/null
+            cp -af $TEMPLATES_DIR/$TEMPLATE/. "$DEST/.devcontainer/" 2>/dev/null
+        fi
+    fi
+}
+
+main_menu

@@ -1,8 +1,5 @@
 **/.DS_Store
-
-.devcontainer
 .unison
 .env
-./.devcontainer
 ./.unison
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#DO NOT USE THIS SCRIPT, IT IS DEPRECATED. USE devcontainer_templatemanager INSTEAD.
 clear
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -26,6 +26,7 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+print_info .
 # Directory containing subfolders
 BASE_DIR="./templates"
 
@@ -52,6 +53,8 @@ if ! [[ "$selection" =~ ^[0-9]+$ ]] || [ "$selection" -lt 1 ] || [ "$selection" 
     exit 1
 fi
 
+echo "You selected option $selection: $(realpath ${folders[$((selection-1))]})"
+exit
 # Get selected folder
 selected_folder="${folders[$((selection-1))]}"
 fullpath_source=$(realpath $selected_folder)
