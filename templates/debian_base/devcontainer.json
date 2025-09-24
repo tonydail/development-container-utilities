@@ -1,0 +1,27 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/alpine
+{
+  "name": "${localWorkspaceFolderBasename}",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "initializeCommand": "bash -l .devcontainer/initializeCommand.sh ${localWorkspaceFolderBasename} ${localWorkspaceFolder}",
+  "dockerComposeFile": "docker-compose.yaml",
+  "service": "code_container",
+  "workspaceFolder": "/${localWorkspaceFolderBasename}",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "GitHub.vscode-pull-request-github",
+        "github.vscode-github-actions",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "Postman.postman-for-vscode",
+        "EditorConfig.EditorConfig",
+        "moshfeu.compare-folders"
+      ]
+    }
+  }
+}

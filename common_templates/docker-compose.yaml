@@ -1,0 +1,20 @@
+services:
+  code_container:
+    image: mcr.microsoft.com/devcontainers/base:bullseye
+    tty: true
+    command: sh
+    volumes_from:
+      - code_sync
+  code_sync:
+    image: ghcr.io/tonydail/unison-sync:latest
+    tty: true
+    pull_policy: always
+    env_file:
+      - .env
+    volumes:
+      - sync_data:${SYNC_SERVER_WORKING_PATH}
+      - unison:${UNISON_META_HOME}
+      - ~/.ssh:/ssh_config:ro
+volumes:
+  sync_data:
+  unison:

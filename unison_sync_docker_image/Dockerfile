@@ -1,5 +1,7 @@
 FROM alpine:latest
 LABEL description="Unison file sync docker image."
+LABEL org.opencontainers.image.source=https://github.com/tonydail/development-container-utilities
+LABEL org.opencontainers.image.description="Unison file sync docker image."
 
 ARG UNISON_VERSION=2.53.7-r0
 
@@ -10,13 +12,7 @@ RUN apk add --update bash su-exec tini openssh && \
 
 # These can be overridden later
 ENV TZ="America/New_York" \
-    LANG="C.UTF-8" \
-
-    REMOTE_UNISON_SERVER_PATH= \
-    REMOTE_UNISON_SERVER_SYNC_PATH= \
-    REMOTE_SSH_USER= \
-    SYNC_FOLDER= \
-    UNISON_SSH_KEY_NAME= 
+    LANG="C.UTF-8" 
 
 # Install unison server script
 COPY entrypoint.sh /entrypoint.sh
