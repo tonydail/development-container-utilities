@@ -1,10 +1,7 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/alpine
 {
   "name": "${localWorkspaceFolderBasename}",
-  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "initializeCommand": "bash -l .devcontainer/initializeCommand.sh ${localWorkspaceFolderBasename} ${localWorkspaceFolder}",
-  "dockerComposeFile": "docker-compose.yaml",
+  "initializeCommand": "bash -l .devcontainer/init.sh",
+  "dockerComposeFile": ["docker-compose.yaml","docker-compose-overrides.yaml"],
   "service": "code_container",
   "workspaceFolder": "/${localWorkspaceFolderBasename}",
   "features": {

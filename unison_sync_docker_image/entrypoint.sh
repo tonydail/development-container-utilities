@@ -8,6 +8,8 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+SSH_REMOTE_HOST=
+
 function getIndentation() {
   indent=${1:-"false"}
   if [ "$indent" == "true" ]; then
@@ -159,8 +161,8 @@ configureSSH() {
 
   log_info "Setting up SSH config for unison..."
   {
-    echo "Host host.docker.internal"
-    echo "  HostName host.docker.internal"
+    echo "Host $SSH_REMOTE_HOST"
+    echo "  HostName $SSH_REMOTE_HOST"
     echo "  User $SYNC_USER"
     echo "  StrictHostKeyChecking no"
     echo "  IdentityFile $SSH_HOME/id_unison_sync_key"
@@ -214,9 +216,10 @@ executeSync() {
 
   EXCLUDES=($EXCLUDE_ARGS)
 
+
   {
     echo "root = $SYNC_SERVER_WORKING_PATH"
-    echo "root = ssh://host.docker.internal/$SYNC_SERVER_DATA_PATH"
+    echo "root = ssh://$SSH_REMOTE_HOST/$SYNC_SERVER_DATA_PATH"
     echo ""
     for EXCLUDE in "${EXCLUDES[@]}"; do
     echo "ignore = Name ${EXCLUDE}"
@@ -237,7 +240,7 @@ executeSync() {
 }
 
 ## Main script execution starts here
-
+export UNISONLOCALHOSTNAME=$SYNC_ALIAS
 log_info "Starting entrypoint script..."
 echo ""
 log_info "Checking required environment variables..."
@@ -256,6 +259,12 @@ if [[ $ENVIRONMENT_VARIABLE_ERROR -eq 1 ]]; then
 fi
 log_success "All required environment variables are set."
 echo "" 
+
+if [ -z "$REMOTE_HOST" ]; then
+  SSH_REMOTE_HOST="host.docker.internal"
+else
+  SSH_REMOTE_HOST="$REMOTE_HOST"
+fi
 
 createUser
 

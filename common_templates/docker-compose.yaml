@@ -1,20 +1,31 @@
 services:
   code_container:
+    extends:
+      service: service_base
     image: mcr.microsoft.com/devcontainers/base:bullseye
     tty: true
     command: sh
     volumes_from:
       - code_sync
   code_sync:
+    extends:
+      service: service_base
     image: ghcr.io/tonydail/unison-sync:latest
     tty: true
     pull_policy: always
-    env_file:
-      - .env
     volumes:
       - sync_data:${SYNC_SERVER_WORKING_PATH}
       - unison:${UNISON_META_HOME}
       - ~/.ssh:/ssh_config:ro
+  service_base:
+    image: mcr.microsoft.com/devcontainers/base:bullseye
+    env_file:
+      - .env
+    networks:
+      - devcontainer_network
+networks:
+  devcontainer_network:
+    driver: bridge
 volumes:
   sync_data:
   unison:

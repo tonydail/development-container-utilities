@@ -16,7 +16,8 @@ main_menu() {
             1 "Apply Template" \
             2 "Save as a Template" \
             3 "Delete Template" \
-            4 "Exit" \
+            4 "Reset docker environment" \
+            5 "Exit" \
             2>&1 >/dev/tty)
 
         case $CHOICE in
@@ -30,6 +31,9 @@ main_menu() {
                 dialog --msgbox "Delete Template selected." 6 40
                 ;;
             4)
+                reset_docker_environment
+                ;;
+            5)
                 clear
                 break
                 ;;
@@ -72,8 +76,8 @@ apply_template() {
         fi
 
         if [ ! -d "$TEMPLATES_DIR/$TEMPLATE" ]; then
-        dialog --msgbox "$TEMPLATES_DIR/$TEMPLATE not found!" 6 60
-        return
+            dialog --msgbox "$TEMPLATES_DIR/$TEMPLATE not found!" 6 60
+            return
         fi
 
         if [ ! -d "$DEST" ]; then
@@ -90,17 +94,87 @@ apply_template() {
         fi
 
         local canproceed=true
-        if [ "$(ls -A $DEST/.devcontainer)" ]; then
+        if [ "$(ls -A $DEST.devcontainer)" ]; then
             if dialog  --yesno "$DEST/.devcontainer is not empty. Do you want to overwrite its contents?" 7 80; then
-                rm -rf "$DEST/.devcontainer"/*
+                rm -rf "$DEST/.devcontainer" 2>/dev/null         
             else
                 canproceed=false
             fi
         fi
 
+        
         if [ "$canproceed" = true ]; then
-            cp -af $COMMON_TEMPLATES_DIR/. "$DEST/.devcontainer/" 2>/dev/null
-            cp -af $TEMPLATES_DIR/$TEMPLATE/. "$DEST/.devcontainer/" 2>/dev/null
+        
+            # create temp file and write devcontainer.json atomically
+            tmpfile1=$(mktemp /tmp/devcontainer.json.XXXXXX) || {
+                dialog --msgbox "Failed to create temporary file." 6 60
+                return
+            }
+            tmpfile2=$(mktemp /tmp/devcontainer.json.XXXXXX) || {
+                dialog --msgbox "Failed to create temporary file." 6 60
+                return
+            }
+
+            tmpDir=$(mktemp -d -t devcontainer.XXXXXX) || {
+                dialog --msgbox "Failed to create temporary file." 6 60
+                return
+            }
+
+
+            cp -af $COMMON_TEMPLATES_DIR/. "$tmpDir/" 2>/dev/null
+            cp -af $TEMPLATES_DIR/$TEMPLATE/. "$tmpDir/" 2>/dev/null
+
+            FEATURES_FILE="$tmpDir/features.json"
+            EXTENSION_FILE="$tmpDir/vscode_extensions.json"
+            DEVFILE="$tmpDir/devcontainer.json"
+            FINISHEDFILE="$tmpDir/devcontainer.json"
+            TEMPFILETOCOPY=
+
+
+
+            if [ -f "$FEATURES_FILE" ]; then
+                if ! jq --slurpfile f "$FEATURES_FILE" '.features = ($f[0].features // $f[0])' "$DEVFILE" > "$tmpfile1"; then
+                echo "jq failed" >&2
+                exit 7
+                fi      
+                TEMPFILETOCOPY="$tmpfile1"
+            fi
+
+
+            if [ -f "$EXTENSION_FILE" ]; then
+                if ! jq --slurpfile ext "$EXTENSION_FILE" '(.customizations //= {}) | (.customizations.vscode //= {}) | .customizations.vscode.extensions = $ext[0]' "$tmpfile1" > "$tmpfile2"; then
+                    echo "jq failed" >&2
+                    exit 7
+                fi
+                TEMPFILETOCOPY="$tmpfile2"
+            fi
+        
+            mv -f "$TEMPFILETOCOPY" "$FINISHEDFILE"  
+            rm -f "$FEATURES_FILE" "$EXTENSION_FILE" "$tmpfile1" "$tmpfile2"
+            
+            if [ ! -d "$DEST/.devcontainer" ]; then
+                mkdir -p "$DEST.devcontainer"
+            fi
+
+            if ! cp -af "$tmpDir/." "$DEST.devcontainer/" 2>/dev/null; then
+                dialog --msgbox "Failed to copy files to $DEST.devcontainer" 6 60
+                return
+            fi
+            rm -rf "$tmpDir"
+
+            dialog --msgbox "Template '$TEMPLATE' applied successfully to '$DEST/.devcontainer'." 6 60
+        fi
+    fi
+}
+
+reset_docker_environment() {
+    if dialog --yesno  "This will remove all Docker containers, images, volumes, and networks.\nDo you want to continue?" 7 80; then
+        docker system prune -a -f
+        docker volume prune --all --force
+        if [ $? -eq 0 ]; then
+            dialog --msgbox "Docker environment reset successfully." 6 60
+        else
+            dialog --msgbox "Failed to reset Docker environment." 6 60
         fi
     fi
 }

@@ -1,0 +1,14 @@
+services:
+  mongodb:
+    extends:
+      file: docker-compose.yaml
+      service: service_base
+    image: mongo:latest # Use the official MongoDB image
+    container_name: my-mongodb-instance
+    ports:
+      - "27017:27017" # Map host port 27017 to container port 27017
+    volumes:
+      - mongodb_data:/data/db # Persist data in a named volume
+volumes:
+  mongodb_data:
+    driver: local

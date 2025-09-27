@@ -1,0 +1,8 @@
+{
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/jshint:2": {},
+    "ghcr.io/devcontainers-extra/features/turborepo-npm:1": {},
+    "ghcr.io/kreemer/features/chrometesting:1": {}
+}
