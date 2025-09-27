@@ -13,7 +13,6 @@
     "ecmel.vscode-html-css",
     "ms-azuretools.vscode-docker",
     "GitHub.vscode-pull-request-github",
-    "github.vscode-github-actions",
     "christian-kohler.npm-intellisense",
     "GitHub.copilot",
     "GitHub.copilot-chat",
@@ -39,7 +38,5 @@
     "moshfeu.compare-folders",
     "yy0931.vscode-sqlite3-editor",
     "Shynet.vscode-taskkill",
-    "Atlassian.atlascode",
-    "crhistianr.jira-issues",
     "mongodb.mongodb-vscode"
 ]
