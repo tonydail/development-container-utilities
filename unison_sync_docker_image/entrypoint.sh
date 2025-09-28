@@ -90,15 +90,29 @@ ensure_directory_symlink() {
     local symlink_target="$2"
     indent_logs="${3:-false}"
     
-    if [ -L "$symlink_target" ] && [ -d "$symlink_target" ]; then
-        log_success "Symlink $symlink_target already exists and points to a valid directory." $indent_logs
+    CREATE_SYMLINK=0
+
+    if [[ -L "$symlink_target" ]]; then
+      ACTUAL_TARGET=$(readlink -f "$symlink_target")
+      if [[ "$ACTUAL_TARGET" == "$dir_path" ]]; then
+        log_success "The symlink '$symlink_target' points to the correct directory: '$dir_path'." $indent_logs
+        CREATE_SYMLINK=0
+      else
+        log_warning "The symlink '$symlink_target' points to '$ACTUAL_TARGET', but expected '$dir_path'.  Deleting and recreating." $indent_logs
+        rm -f "$symlink_target"
+        CREATE_SYMLINK=1
+      fi
     else
-        if ! ln -s "$dir_path" "$symlink_target"
-        then
-          log_error "Could not create symlink $dir_path -> $symlink_target" $indent_logs
-        else
-          log_success "Created symlink $dir_path -> $symlink_target" $indent_logs
-        fi
+      CREATE_SYMLINK=1
+    fi
+
+    if [[ $CREATE_SYMLINK -eq 1 ]]; then
+      if ! ln -s "$dir_path" "$symlink_target"
+      then
+        log_error "Could not create symlink $dir_path -> $symlink_target" $indent_logs
+      else
+        log_success "Created symlink $dir_path -> $symlink_target" $indent_logs
+      fi
     fi
     
 }
@@ -216,7 +230,12 @@ executeSync() {
 
   EXCLUDES=($EXCLUDE_ARGS)
 
+  if [ -f "$UNISON_PROFILE" ]; then
+    rm -f "$UNISON_PROFILE"
+    log_info "Removed existing unison profile at $UNISON_PROFILE"
+  fi
 
+  log_info "Creating unison profile at $UNISON_PROFILE"
   {
     echo "root = $SYNC_SERVER_WORKING_PATH"
     echo "root = ssh://$SSH_REMOTE_HOST/$SYNC_SERVER_DATA_PATH"
@@ -233,7 +252,7 @@ executeSync() {
     echo "servercmd = $SYNC_EXECUTABLE_PATH"
   } >> "$UNISON_PROFILE"
 
-
+  log_success "Created unison profile at $UNISON_PROFILE" true
 
   exec su-exec $UNISON_USER unison $UNISION_PROFILE_NAME
 
@@ -276,13 +295,14 @@ for dir in "${SYNC_DIRECTORIES[@]}"; do
 done
 
 SSH_HOME=$(realpath "$UNISON_HOME"/.ssh)
-UNISON_META_HOME_LN=$(realpath "$UNISON_HOME"/.unison)
+UNISON_META_HOME_LN="$UNISON_HOME/.unison"
 
 
 # Symlink .unison folder from user home directory to sync directory so that we only need 1 volume
 #log_info "Ensuring symlink unison meta folder from $UNISON_HOME directory to $SYNC_SERVER_WORKING_PATH/.unison so we only need 1 volume..."
 
 setDirectoryOwnership "$UNISON_META_HOME" "$UNISON_USER" "$UNISON_GROUP" 
+log_info "Ensuring symlink from $UNISON_META_HOME to $UNISON_META_HOME_LN."
 ensure_directory_symlink "$UNISON_META_HOME" "$UNISON_META_HOME_LN" true
 
 configureSSH
