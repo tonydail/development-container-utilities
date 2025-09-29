@@ -12,7 +12,7 @@ SYNC_PUBLIC_SSH_KEY="${SYNC_PRIVATE_SSH_KEY}.pub"
 WORKING_FOLDER="$(pwd)/.devcontainer"
 ENVIRONMENT_FILE="$WORKING_FOLDER/.env"
 EXCLUDES_FILE="$WORKING_FOLDER/unison_sync_excludes"
-ENVIROMENT_EXTENTSION_FILE="$WORKING_FOLDER/environment_extension"
+ENVIROMENT_EXTENTSION_FILE="$WORKING_FOLDER/environment-overrides"
 
 # Platform detection (macos | linux | wsl | unknown)
 detect_platform() {
@@ -73,30 +73,64 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-log_success() { printf "%b\n" "${GREEN}✅ Success:${NC} $*"; }
-log_error()   { printf "%b\n" "${RED}❌ Error:${NC} $*" >&2; }
-log_warning() { printf "%b\n" "${YELLOW}⚠️ Warning:${NC} $*"; }
-log_info()    { printf "%b\n" "${BLUE}📘 Info:${NC} $*"; }
+function getIndentation() {
+  indent=${1:-"false"}
+  if [ "$indent" == "true" ]; then
+    num_spaces=4
+  else
+    num_spaces=0
+  fi
+  printf "%${num_spaces}s"
+}
+
+# Success log
+log_success() {
+  message="$1"
+  spaces=$(getIndentation "${2:-"false"}")
+  echo -e "${spaces}${GREEN}Success:${NC} $message"
+}
+
+# Error log
+log_error() {
+  message="$1"
+  spaces=$(getIndentation "${2:-"false"}")
+  echo -e "${spaces}${RED}Error:${NC} $message"
+}
+
+
+# Warning log
+log_warning() {
+  message="$1"
+  spaces=$(getIndentation "${2:-"false"}")
+  echo -e "${spaces}${YELLOW}Warning:${NC} $message"
+}
+
+# Info log
+log_info() {
+  message="$1"
+  spaces=$(getIndentation "${2:-"false"}")
+  echo -e "${spaces}${BLUE}Info:${NC} $message"
+}
 
 die() { log_error "$1"; exit ${2:-1}; }
 
 installDependencies() {
   detect_platform
   log_info "Platform detected: ${PLATFORM:-unknown}"
+  log_info "Checking and installing dependencies..."
   local packages=(unison unison-fsmonitor)
 
   if [ "${PLATFORM:-}" = "macos" ]; then
     if ! command -v brew &>/dev/null; then
-      log_warning "Homebrew not found; skipping automatic install. Install 'unison' manually or add brew to PATH."
+      log_warning "Homebrew not found; skipping automatic install. Install 'unison' manually or add brew to PATH." true
       return
     fi
     for pkg in "${packages[@]}"; do
       if brew list --formula | grep -q "^${pkg}$"; then
-        log_success "$pkg is already installed."
+        log_success "$pkg is already installed." true
       else
-        log_info "Installing $pkg via brew..."
         brew install "$pkg"
-        log_success "$pkg installed."
+        log_success "$pkg installed." true
       fi
     done
     return
@@ -135,31 +169,32 @@ create_sync_ssh_keys() {
   chmod 700 "$SSH_KEY_FOLDER" || true
 
   if [ ! -f "$SYNC_PRIVATE_SSH_KEY" ] || [ ! -f "$SYNC_PUBLIC_SSH_KEY" ]; then
-    log_info "Generating SSH key pair at $SYNC_PRIVATE_SSH_KEY"
+    log_info "SSH keys not found. Generating new SSH key pair..."
     ssh-keygen -t ed25519 -C "$(whoami)@$(hostname)" -f "$SYNC_PRIVATE_SSH_KEY" -N "" || die "ssh-keygen failed"
-    log_success "SSH key pair created."
+    log_success "SSH key pair created." true
   else
-    log_success "SSH key pair already exists."
+    log_success "SSH key pair already exists." true
   fi
 
   local auth_file="$SSH_KEY_FOLDER/authorized_keys"
   touch "$auth_file"
   chmod 600 "$auth_file" || true
 
-  # Append public key to authorized_keys if not present
+  log_info "Adding public key to authorized_keys if not already present..."
   if ! grep -Fqx "$(cat "$SYNC_PUBLIC_SSH_KEY")" "$auth_file" 2>/dev/null; then
     cat "$SYNC_PUBLIC_SSH_KEY" >> "$auth_file"
-    log_info "Added public key to $auth_file"
+    log_success "Added public key to $auth_file" true
   else
-    log_info "Public key already present in $auth_file"
+    log_success "Public key already present in $auth_file" true
   fi
 
   if is_ssh_agent_running; then
+  log_info "ssh-agent is running. Adding private key to ssh-agent..."
     if ! ssh-add -l 2>/dev/null | grep -q "$SYNC_PRIVATE_SSH_KEY"; then
-      ssh-add "$SYNC_PRIVATE_SSH_KEY" 2>/dev/null || log_warning "Could not add key to ssh-agent."
+      ssh-add "$SYNC_PRIVATE_SSH_KEY" 2>/dev/null || log_warning "Could not add key to ssh-agent." true
     fi
   else
-    log_info "ssh-agent not running; skipping ssh-add."
+    log_warning "ssh-agent not running; skipping ssh-add." true
   fi
 }
 
@@ -169,14 +204,16 @@ writeEnvironmentFile() {
 
   local EXCLUDES=()
   if [ -f "$EXCLUDES_FILE" ]; then
+    log_info "Loading unison sync excludes from $EXCLUDES_FILE" true
     # read non-empty non-comment lines
     while IFS= read -r line; do
       line="${line%%#*}" # strip comments
       line="$(echo "$line" | xargs)" # trim
       [ -n "$line" ] && EXCLUDES+=("$line")
     done < "$EXCLUDES_FILE"
+    log_success "Unison sync excludes loaded." true
   else
-    log_info "No excludes file at $EXCLUDES_FILE; continuing with no excludes."
+    log_warning "No excludes file at $EXCLUDES_FILE; continuing with no excludes." true
   fi
 
   local exclude_args="${EXCLUDES[*]:-}"
@@ -194,24 +231,25 @@ SYNC_USER="$(whoami)"
 SYNC_SERVER_DATA_PATH="$(pwd)"
 SYNC_SERVER_WORKING_PATH="/$(basename "$(pwd)")"
 SYNC_EXECUTABLE_PATH="$(command -v unison || true)"
-SYNC_ALIAS="$(basename "$(pwd)")_code_sync"
 UNISON_META_HOME="/unison"
 EXCLUDE_ARGS="$exclude_args"
 REMOTE_HOST="$remote_host"
+SERVICE_NAME="$(basename "$(pwd)")"
 EOL
 
-  mv "$tmp" "$ENVIRONMENT_FILE"
-  chmod 644 "$ENVIRONMENT_FILE" || true
-  log_success "Wrote environment file to $ENVIRONMENT_FILE"
 
 
+  log_info "Checking for environment extension file at $ENVIROMENT_EXTENTSION_FILE" true
   if [ -f "$ENVIROMENT_EXTENTSION_FILE" ]; then
-    log_info "Appending environment extension from $ENVIROMENT_EXTENTSION_FILE"
-    cat "$ENVIROMENT_EXTENTSION_FILE" >> "$ENVIRONMENT_FILE"
-    log_success "Appended environment extension."
+    cat "$ENVIROMENT_EXTENTSION_FILE" >> "$tmp"
+    log_success "Appended contents from $ENVIROMENT_EXTENTSION_FILE TO $ENVIRONMENT_FILE." true
   else
-    log_info "No environment extension file at $ENVIROMENT_EXTENTSION_FILE; skipping."
+    log_warning "No environment extension file at $ENVIROMENT_EXTENTSION_FILE; skipping." true
   fi
+
+    mv "$tmp" "$ENVIRONMENT_FILE"
+    chmod 644 "$ENVIRONMENT_FILE" || true
+    log_success "Wrote environment file to $ENVIRONMENT_FILE" true
 }
 
 
