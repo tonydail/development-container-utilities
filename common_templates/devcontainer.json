@@ -1,7 +1,10 @@
 {
   "name": "${localWorkspaceFolderBasename}",
   "initializeCommand": "bash -l .devcontainer/init.sh",
-  "dockerComposeFile": ["docker-compose.yaml","docker-compose-overrides.yaml"],
+  "dockerComposeFile": [
+    "docker-compose.yaml",
+    "docker-compose-overrides.yaml"
+  ],
   "service": "code_container",
   "workspaceFolder": "/${localWorkspaceFolderBasename}",
   "features": {
@@ -15,9 +18,7 @@
         "github.vscode-github-actions",
         "GitHub.copilot",
         "GitHub.copilot-chat",
-        "Postman.postman-for-vscode",
-        "EditorConfig.EditorConfig",
-        "moshfeu.compare-folders"
+        "EditorConfig.EditorConfig"
       ]
     }
   }

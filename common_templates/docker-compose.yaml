@@ -3,6 +3,7 @@ services:
     extends:
       service: service_base
     image: mcr.microsoft.com/devcontainers/base:bullseye
+    container_name: ${SERVICE_NAME}_code
     tty: true
     command: sh
     volumes_from:
@@ -11,6 +12,7 @@ services:
     extends:
       service: service_base
     image: ghcr.io/tonydail/unison-sync:latest
+    container_name: ${SERVICE_NAME}_unison_sync
     tty: true
     pull_policy: always
     volumes:
@@ -22,9 +24,10 @@ services:
     env_file:
       - .env
     networks:
-      - devcontainer_network
+      - devcontainer_network_alias
 networks:
-  devcontainer_network:
+  devcontainer_network_alias:
+    name: ${SERVICE_NAME}_network
     driver: bridge
 volumes:
   sync_data:

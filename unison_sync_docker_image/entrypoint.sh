@@ -259,7 +259,6 @@ executeSync() {
 }
 
 ## Main script execution starts here
-export UNISONLOCALHOSTNAME=$SYNC_ALIAS
 log_info "Starting entrypoint script..."
 echo ""
 log_info "Checking required environment variables..."
