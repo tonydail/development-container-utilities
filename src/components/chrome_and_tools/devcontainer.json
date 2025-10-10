@@ -1,0 +1,3 @@
+{
+    "postCreateCommand": "bash -l .devcontainer/container-post-create.sh"
+}

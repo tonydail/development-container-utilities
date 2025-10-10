@@ -1,0 +1,34 @@
+{
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {},
+        "ghcr.io/devcontainers-extra/features/jshint:2": {},
+        "ghcr.io/devcontainers-extra/features/turborepo-npm:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "ms-vscode.vscode-typescript-next",
+                "xabikos.JavaScriptSnippets",
+                "formulahendry.auto-rename-tag",
+                "formulahendry.auto-close-tag",
+                "formulahendry.auto-complete-tag",
+                "ecmel.vscode-html-css",
+                "christian-kohler.npm-intellisense",
+                "achil.vscode-javascript-repl",
+                "t-sauer.vscode-babel-repl",
+                "xqchen.yarn-ui",
+                "carlosjs23.vscode-yarn-script",
+                "gamunu.vscode-yarn",
+                "idered.npm",
+                "jasonnutter.search-node-modules",
+                "lostfields.nodejs-repl",
+                "samundrak.esdoc-mdn",
+                "CoryGross.vscode-mdn-docs",
+                "tomoki1207.pdf",
+                "EbenezerDon.npm-studio"
+            ]
+        }
+    }
+}

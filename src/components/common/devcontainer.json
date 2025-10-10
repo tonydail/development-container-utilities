@@ -1,0 +1,36 @@
+{
+    "name": "${localWorkspaceFolderBasename}",
+    "dockerComposeFile": [
+        "docker-compose.yaml"
+    ],
+    "service": "code_container",
+    "workspaceFolder": "/${localWorkspaceFolderBasename}",
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:1": {},
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker",
+                "GitHub.vscode-pull-request-github",
+                "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "Postman.postman-for-vscode",
+                "Shynet.vscode-taskkill",
+                "alefragnani.Bookmarks",
+                "moshfeu.compare-folders",
+                "streetsidesoftware.code-spell-checker",
+                "visualstudioexptteam.vscodeintellicode",
+                "mhutchie.git-graph",
+                "EditorConfig.EditorConfig",
+                "mikestead.dotenv",
+                "yzhang.markdown-all-in-one",
+                "aaron-bond.better-comments"
+            ]
+        }
+    },
+    "initializeCommand": "bash -l .devcontainer/host-init.sh",
+    "postCreateCommand": "bash -l .devcontainer/container-post-create.sh"
+}

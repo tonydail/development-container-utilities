@@ -1,0 +1,11 @@
+services:
+  mongodb:
+    extends:
+      service: service_base
+    image: mongo:latest
+    container_name: ${SERVICE_NAME}_mongodb
+    volumes:
+      - mongodb_data:/data/db
+volumes:
+  mongodb_data:
+    driver: local

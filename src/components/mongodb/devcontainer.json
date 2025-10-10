@@ -1,0 +1,10 @@
+{
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "mongodb.mongodb-vscode"
+            ]
+        }
+    },
+    "postCreateCommand": "bash -l .devcontainer/container-post-create.sh"
+}

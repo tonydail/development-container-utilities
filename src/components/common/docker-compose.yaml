@@ -6,8 +6,8 @@ services:
     container_name: ${SERVICE_NAME}_code
     tty: true
     command: sh
-    volumes_from:
-      - code_sync
+    volumes:
+      - sync_data:${SYNC_SERVER_WORKING_PATH}
   code_sync:
     extends:
       service: service_base
@@ -31,4 +31,4 @@ networks:
     driver: bridge
 volumes:
   sync_data:
-  unison:
+  unison: 
