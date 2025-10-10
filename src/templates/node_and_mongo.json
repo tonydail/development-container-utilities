@@ -1,0 +1,23 @@
+{
+    "name": "Node.js with Mongo and Tools",
+    "description": "A multiple container environment.\nContainers include:\n\t- Node.js development container with feaures and Visual Studio Code extensions for Node.js development.\n\t- MongoDB server.\n",
+    "component-config-name":"config.json",
+    "components": [
+        {
+            "component": "common",
+            "build-order": 1
+        },
+        {
+             "component": "node",
+            "build-order": 2
+        },
+        {
+            "component": "mongodb",
+            "build-order": 3
+        },
+        {
+            "component": "chrome_and_tools",
+            "build-order": 4
+        }
+    ]
+}

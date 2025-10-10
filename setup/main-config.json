@@ -1,0 +1,29 @@
+{
+    "title": "Development Container Template Manager",
+    "description": "",
+    "menus": [
+        {
+            "id": 1,
+            "title": "Apply templates",
+            "script": "",
+            "entry-point": "",
+            "next-menu": 1,
+            "menus": [
+                {
+                    "id": 1,
+                    "title": "Select a template",
+                    "script": "",
+                    "entry-point": "",
+                    "next-menu": 2
+                },
+                {
+                    "id": 2,
+                    "title": "Select a template",
+                    "script": "",
+                    "entry-point": "",
+                    "next-menu": 2
+                }
+            ]
+        }
+    ]
+}

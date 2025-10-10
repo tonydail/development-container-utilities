@@ -114,6 +114,65 @@ log_info() {
 
 die() { log_error "$1"; exit ${2:-1}; }
 
+escape_chars() {
+  local input_string="$1"
+  shift # Remove the first argument (input_string)
+  local chars_to_escape=("$@") # Remaining arguments are the characters to escape
+  local escaped_string="$input_string"
+
+  for char in "${chars_to_escape[@]}"; do
+    # Use parameter expansion to replace each character with its escaped version
+    # The backslash needs to be escaped itself for the replacement pattern
+    escaped_string="${escaped_string//"$char"/"\\$char"}"
+  done
+
+  echo "$escaped_string"
+}
+
+
+writeEnvironmentComment() {
+    local comment="$1"
+    local env_file="$2"
+
+    sed -I '' "/${comment}/d" "$env_file" || die "Failed to update $var_name in $env_file"
+    printf "\n\n# %s" "$comment" >> "$env_file" || die "Failed to write comment to $env_file"
+
+}
+
+writeEnvironmentFileEntry() {
+  local var_name="$1"
+  local var_value="$2"
+  local env_file="$3"
+
+  sed -I '' "/${var_name}/d" "$env_file" || die "Failed to update $var_name in $env_file"
+  printf "\n%s=\"%s\"" "$var_name" "$var_value" >> "$env_file" || die "Failed to add $var_name to $env_file"  
+}
+
+writeEnvironmentFile() {
+    detect_platform
+    local remote_host
+    remote_host=$(get_local_ip)
+
+    local tmp
+    tmp=$(mktemp) || die "Unable to create temp file"
+    echo "$tmp"
+    cat "$ENVIRONMENT_FILE" > "$tmp"
+
+    writeEnvironmentComment "Unison Sync Environment Variables" "$tmp"
+    writeEnvironmentFileEntry "SYNC_USER" "$(whoami)" "$tmp"
+    writeEnvironmentFileEntry "SYNC_SERVER_DATA_PATH" "$(pwd)" "$tmp"
+    writeEnvironmentFileEntry "SYNC_SERVER_WORKING_PATH" "/$(basename "$(pwd)")" "$tmp"
+    writeEnvironmentFileEntry "SYNC_EXECUTABLE_PATH" "$(command -v unison || true)" "$tmp"
+    writeEnvironmentFileEntry "UNISON_META_HOME" "/unison" "$tmp"
+    writeEnvironmentFileEntry "REMOTE_HOST" "$remote_host" "$tmp"
+    writeEnvironmentFileEntry "SERVICE_NAME" "$(basename "$(pwd)")" "$tmp"
+
+    mv -f "$tmp" "$ENVIRONMENT_FILE"
+    chmod 644 "$ENVIRONMENT_FILE" || true
+    log_success "Wrote environment file to $ENVIRONMENT_FILE" true
+    
+}
+
 installDependencies() {
   detect_platform
   log_info "Platform detected: ${PLATFORM:-unknown}"
@@ -198,69 +257,9 @@ create_sync_ssh_keys() {
   fi
 }
 
-writeEnvironmentFile() {
-  log_info "Writing environment file to $ENVIRONMENT_FILE"
-  mkdir -p "$(dirname "$ENVIRONMENT_FILE")"
-
-  local EXCLUDES=()
-  if [ -f "$EXCLUDES_FILE" ]; then
-    log_info "Loading unison sync excludes from $EXCLUDES_FILE" true
-    # read non-empty non-comment lines
-    while IFS= read -r line; do
-      line="${line%%#*}" # strip comments
-      line="$(echo "$line" | xargs)" # trim
-      [ -n "$line" ] && EXCLUDES+=("$line")
-    done < "$EXCLUDES_FILE"
-    log_success "Unison sync excludes loaded." true
-  else
-    log_warning "No excludes file at $EXCLUDES_FILE; continuing with no excludes." true
-  fi
-
-  local exclude_args="${EXCLUDES[*]:-}"
-
-  # Determine local IP in a platform-aware way (macOS / Linux / WSL)
-  detect_platform
-  local remote_host
-  remote_host=$(get_local_ip)
-
-  local tmp
-  tmp=$(mktemp) || die "Unable to create temp file"
-  cat > "$tmp" <<EOL
-# Unison Sync Environment Variables
-SYNC_USER="$(whoami)"
-SYNC_SERVER_DATA_PATH="$(pwd)"
-SYNC_SERVER_WORKING_PATH="/$(basename "$(pwd)")"
-SYNC_EXECUTABLE_PATH="$(command -v unison || true)"
-UNISON_META_HOME="/unison"
-EXCLUDE_ARGS="$exclude_args"
-REMOTE_HOST="$remote_host"
-SERVICE_NAME="$(basename "$(pwd)")"
-EOL
-
-
-
-  log_info "Checking for environment extension file at $ENVIROMENT_EXTENTSION_FILE" true
-  if [ -f "$ENVIROMENT_EXTENTSION_FILE" ]; then
-    cat "$ENVIROMENT_EXTENTSION_FILE" >> "$tmp"
-    log_success "Appended contents from $ENVIROMENT_EXTENTSION_FILE TO $ENVIRONMENT_FILE." true
-  else
-    log_warning "No environment extension file at $ENVIROMENT_EXTENTSION_FILE; skipping." true
-  fi
-
-    mv "$tmp" "$ENVIRONMENT_FILE"
-    chmod 644 "$ENVIRONMENT_FILE" || true
-    log_success "Wrote environment file to $ENVIRONMENT_FILE" true
-}
-
-
 
 # Main  
 installDependencies
 create_sync_ssh_keys
 writeEnvironmentFile
-
-
-
-
-
-
+find . -type f -name '*.DS_Store' -ls -delete

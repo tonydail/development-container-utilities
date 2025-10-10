@@ -1,0 +1,8 @@
+{
+    "mdb.presetConnections": [
+        {
+            "name": "MongoDB development-container-utilities",
+            "connectionString": "mongodb://${env:MONGO_INITDB_ROOT_USERNAME}:${env:MONGO_INITDB_ROOT_PASSWORD}@${env:SERVICE_NAME}_mongodb:27017?authSource=admin"
+        }
+    ]
+}
