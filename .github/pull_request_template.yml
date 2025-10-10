@@ -1,0 +1,111 @@
+name: Pull Request Template
+description: Template for creating pull requests
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Pull Request Description
+        
+        Thank you for contributing to development-container-utilities! Please fill out the sections below to help us review your changes.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Provide a brief summary of the changes in this pull request
+      placeholder: Describe what this PR does and why it's needed
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type of Change
+      description: What type of change does this PR introduce?
+      options:
+        - Bug fix (non-breaking change which fixes an issue)
+        - New feature (non-breaking change which adds functionality)
+        - Breaking change (fix or feature that would cause existing functionality to not work as expected)
+        - Documentation update
+        - Refactoring (no functional changes)
+        - Configuration changes
+        - Build/CI changes
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: components
+    attributes:
+      label: Components Modified
+      description: Which components or areas of the project does this PR affect?
+      options:
+        - label: Container configurations (devcontainer.json files)
+        - label: Lifecycle scripts
+        - label: Docker Compose files
+        - label: Templates
+        - label: Components
+        - label: Setup scripts
+        - label: Documentation
+        - label: Build/deployment scripts
+        - label: Helper utilities
+
+  - type: textarea
+    id: changes
+    attributes:
+      label: Detailed Changes
+      description: Provide a detailed list of changes made
+      placeholder: |
+        - Added new feature X
+        - Fixed bug in Y
+        - Updated documentation for Z
+    validations:
+      required: true
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: Testing
+      description: Describe how you tested these changes
+      placeholder: |
+        - Tested locally with container X
+        - Verified feature Y works as expected
+        - Ran existing scripts to ensure no regression
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have tested my changes locally
+          required: true
+        - label: I have updated documentation if necessary
+          required: false
+        - label: I have added or updated tests if applicable
+          required: false
+        - label: My changes follow the existing code style
+          required: true
+        - label: I have checked that my changes don't break existing functionality
+          required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Notes
+      description: Any additional information, context, or screenshots that would be helpful for reviewers
+      placeholder: Add any other relevant information here
+    validations:
+      required: false
+
+  - type: textarea
+    id: related
+    attributes:
+      label: Related Issues
+      description: Link any related issues or discussions
+      placeholder: |
+        Fixes #123
+        Related to #456
+    validations:
+      required: false
