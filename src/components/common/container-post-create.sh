@@ -295,7 +295,7 @@ common_main() {
     
     # Run setup functions
     setup_bash_aliases
-    setup_vscode_settings
+    #setup_vscode_settings
 }
 
 # Only run main function if script is executed directly (not sourced)

@@ -7,18 +7,15 @@ services:
     tty: true
     command: sh
     volumes:
-      - sync_data:${SYNC_SERVER_WORKING_PATH}
+      - sync_data:${SYNC_SERVER_WORKING_PATH}:rw
   code_sync:
     extends:
       service: service_base
-    image: ghcr.io/tonydail/unison-sync:latest
-    container_name: ${SERVICE_NAME}_unison_sync
+    image: debian:bullseye-slim
+    container_name: ${SERVICE_NAME}_sync
     tty: true
-    pull_policy: always
     volumes:
-      - sync_data:${SYNC_SERVER_WORKING_PATH}
-      - unison:${UNISON_META_HOME}
-      - ~/.ssh:/ssh_config:ro
+      - sync_data:${SYNC_SERVER_WORKING_PATH}:rwo
   service_base:
     image: mcr.microsoft.com/devcontainers/base:bullseye
     env_file:

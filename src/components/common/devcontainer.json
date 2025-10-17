@@ -32,5 +32,5 @@
         }
     },
     "initializeCommand": "bash -l .devcontainer/host-init.sh",
-    "postCreateCommand": "bash -l .devcontainer/container-post-create.sh"
+    "postCreateCommand": "sudo chown -R vscode:vscode /${localWorkspaceFolderBasename} && while [ ! -f .devcontainer/container-post-create.sh ]; do sleep 1; done && .devcontainer/container-post-create.sh"
 }
