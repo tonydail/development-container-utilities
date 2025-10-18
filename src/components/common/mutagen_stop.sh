@@ -17,6 +17,17 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+setup_working_environment() {
+	SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+	SERVICE_NAME="$(basename "$(pwd)")"
+	#check if we have a logs directory in the user log path
+	LOG_DIR="$HOME/Library/Logs/$(basename "$SERVICE_NAME")"
+
+	MUTAGEN_LOG="$LOG_DIR/mutagen.log"
+	PID_LOG="$LOG_DIR/mutagen_pid.log"
+	SESSION_INFO_LOG="$LOG_DIR/mutagen_session_info.log"
+}
+
 # Function to print colored output
 print_status() {
     local color=$1
@@ -73,7 +84,7 @@ get_process_pid() {
 
 # Function to check if mutagen is available
 check_mutagen() {
-    if ! command -v mutagen &> /dev/null; then
+	if ! command -v mutagen &>/dev/null; then
         print_status $RED "Error: mutagen command not found in PATH"
         print_status $YELLOW "This script requires mutagen to be installed and available"
         return 1
@@ -122,7 +133,7 @@ kill_process() {
     fi
     
     # Check if process is running
-    if ps -p "$pid" > /dev/null 2>&1; then
+	if ps -p "$pid" >/dev/null 2>&1; then
         print_status $YELLOW "Killing process PID: $pid"
         if kill "$pid"; then
             print_status $GREEN "✓ Successfully killed process: $pid"
@@ -144,12 +155,12 @@ log_termination() {
     local identifier=$2
     local timestamp=$(date)
     
-    echo "" >> "$SESSION_INFO_LOG"
-    echo "=== TERMINATION LOG ===" >> "$SESSION_INFO_LOG"
-    echo "Terminated on: $timestamp" >> "$SESSION_INFO_LOG"
-    echo "Method: $method" >> "$SESSION_INFO_LOG"
-    echo "Identifier: $identifier" >> "$SESSION_INFO_LOG"
-    echo "======================" >> "$SESSION_INFO_LOG"
+	echo "" >>"$SESSION_INFO_LOG"
+	echo "=== TERMINATION LOG ===" >>"$SESSION_INFO_LOG"
+	echo "Terminated on: $timestamp" >>"$SESSION_INFO_LOG"
+	echo "Method: $method" >>"$SESSION_INFO_LOG"
+	echo "Identifier: $identifier" >>"$SESSION_INFO_LOG"
+	echo "======================" >>"$SESSION_INFO_LOG"
 }
 
 # Function to show session information
@@ -173,7 +184,7 @@ show_session_info() {
     fi
     
     if [[ -n "$pid" ]]; then
-        if ps -p "$pid" > /dev/null 2>&1; then
+		if ps -p "$pid" >/dev/null 2>&1; then
             print_status $GREEN "Process PID: $pid (running)"
         else
             print_status $YELLOW "Process PID: $pid (not running)"
@@ -187,6 +198,17 @@ show_session_info() {
 
 # Main function
 main() {
+	local should_exit=false
+	setup_working_environment
+	if [[ ! -d "$LOG_DIR" ]]; then
+		print_status $RED "Error: Log directory not found at $LOG_DIR"
+		print_status $RED "Unable to proceed with mutagen sync termination."
+		exit 1
+	else
+		print_status $GREEN "Using log directory: $LOG_DIR"
+	fi
+
+
     print_status $BLUE "Mutagen Session Termination Script"
     print_status $BLUE "=================================="
     
@@ -195,11 +217,11 @@ main() {
     
     # Parse command line arguments
     case "${1:-auto}" in
-        "info"|"--info"|"-i")
+	"info" | "--info" | "-i")
             print_status $BLUE "Session information displayed above"
             exit 0
             ;;
-        "id"|"--id")
+	"id" | "--id")
             if ! check_mutagen; then
                 exit 1
             fi
@@ -211,7 +233,7 @@ main() {
                 exit 1
             fi
             ;;
-        "name"|"--name")
+	"name" | "--name")
             if ! check_mutagen; then
                 exit 1
             fi
@@ -223,7 +245,7 @@ main() {
                 exit 1
             fi
             ;;
-        "pid"|"--pid")
+	"pid" | "--pid")
             pid=$(get_process_pid)
             if [[ -n "$pid" ]]; then
                 kill_process "$pid"
@@ -232,7 +254,7 @@ main() {
                 exit 1
             fi
             ;;
-        "auto"|"--auto"|"")
+	"auto" | "--auto" | "")
             # Try different termination methods in order
             success=false
             
@@ -262,9 +284,13 @@ main() {
             if [[ "$success" != "true" ]]; then
                 print_status $RED "All termination methods failed"
                 exit 1
+		else
+			print_status $GREEN "Mutagen session terminated successfully"
+			print_status $BLUE "Cleaning up log directory: $LOG_DIR"
+			rm -rfv "$LOG_DIR"
             fi
             ;;
-        "help"|"--help"|"-h")
+	"help" | "--help" | "-h")
             print_status $BLUE "Usage: $0 [METHOD]"
             print_status $BLUE ""
             print_status $BLUE "Methods:"

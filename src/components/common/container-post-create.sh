@@ -10,7 +10,7 @@ set -euo pipefail
 # It contains commands that are common to all development containers.
 #
 # Dependencies: 
-#   - Environment variables: SYNC_SERVER_WORKING_PATH, HOME
+#   - Environment variables: SERVICE_NAME, HOME
 #   - Directory structure: .devcontainer/ in workspace root
 # ==============================================================================
 
@@ -246,7 +246,7 @@ install_packages() {
 setup_bash_aliases() {
     log_info "Setting up bash aliases symlink"
     
-    local source_file="$SYNC_SERVER_WORKING_PATH/$DEVCONTAINER_DIR/$BASH_ALIASES_FILE"
+    local source_file="/$SERVICE_NAME/$DEVCONTAINER_DIR/$BASH_ALIASES_FILE"
     local target_link="$HOME/$BASH_ALIASES_FILE"
     
     if [[ -f "$source_file" ]]; then
@@ -260,8 +260,8 @@ setup_bash_aliases() {
 setup_vscode_settings() {
     log_info "Setting up VSCode workspace settings"
     
-    local vscode_dir="$SYNC_SERVER_WORKING_PATH/$VSCODE_DIR"
-    local source_file="$SYNC_SERVER_WORKING_PATH/$DEVCONTAINER_DIR/$VSCODE_SETTINGS_FILE"
+    local vscode_dir="/$SERVICE_NAME/$VSCODE_DIR"
+    local source_file="/$SERVICE_NAME/$DEVCONTAINER_DIR/$VSCODE_SETTINGS_FILE"
     local target_link="$vscode_dir/$VSCODE_SETTINGS_LINK"
     
     # Ensure .vscode directory exists
@@ -289,7 +289,7 @@ setup_vscode_settings() {
 common_main() {
     log_info "Starting common container post-create setup..."
 	validate_os || exit 1
-	validate_environment_variables "SYNC_USER" "SYNC_SERVER_DATA_PATH" "SYNC_SERVER_WORKING_PATH" "SYNC_EXECUTABLE_PATH" "UNISON_META_HOME" "REMOTE_HOST" "SERVICE_NAME" || exit 1
+	validate_environment_variables "SERVICE_NAME" || exit 1
     validate_dependencies "sudo" "curl" "apt-get" || exit 1
     validate_sudo_access || exit 1
     

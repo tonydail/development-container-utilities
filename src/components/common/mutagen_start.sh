@@ -13,8 +13,8 @@ else
 	echo "Using provided working folder: $WORKING_FOLDER"
 fi
 
-devcontainer_path="$PWD/.devcontainer"
-SERVICE_NAME=$(basename "$PWD")
+devcontainer_path="$WORKING_FOLDER/.devcontainer"
+SERVICE_NAME=$(basename "$WORKING_FOLDER")
 export SERVICE_NAME
 
 docker_compose_file="$devcontainer_path/docker-compose.yaml"
@@ -28,13 +28,9 @@ else
 fi
 
 
-
-SYNC_NAME=$(basename "$WORKING_FOLDER")
-# CONTAINER_NAME="$SERVICE_NAME"
-
-SESSION_NAME="${SYNC_NAME}-mutagen-session"
+SESSION_NAME="${SERVICE_NAME}-mutagen-session"
 LOCAL_PATH="$WORKING_FOLDER"
-REMOTE_PATH="docker://${CONTAINER_NAME}/${SYNC_NAME}"
+REMOTE_PATH="docker://${CONTAINER_NAME}/${SERVICE_NAME}"
 BETA_OWNER="1000" # Replace with the desired username for the beta endpoint
 BETA_GROUP="1000"
 
@@ -44,7 +40,7 @@ is_running() {
 
 echo "Waiting for container '$CONTAINER_NAME' to become available..."
 
-# Loop until the container is healthy with timeout for background mode
+# Loop until the container is started with timeout for background mode
 TIMEOUT=300 # 5 minutes timeout
 ELAPSED=0
 while ! is_running; do
