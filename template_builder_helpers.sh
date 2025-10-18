@@ -198,7 +198,13 @@ join_files() {
 			fi
 		done
 		if [ -f "$FILE_2" ]; then
-			cp "$FILE_2" "$BUILD_OUTPUT_DIR/$UNIQIUE_FILE"
+			UNIQIUE_FILE_OUTPUT="$BUILD_OUTPUT_DIR/$UNIQIUE_FILE"
+			cp "$FILE_2" "$UNIQIUE_FILE_OUTPUT"
+
+			#make shell scripts executable
+			if [ ".${UNIQIUE_FILE_OUTPUT##*.}" == ".sh" ]; then
+				chmod +x "$UNIQIUE_FILE_OUTPUT"
+			fi
 		fi
 		FILE_1=
 		FILE_2=
@@ -243,14 +249,6 @@ build_devcontainer_config() {
 	create_template_directory_structure
 
 	join_files
-
-	#configFile=$(join_config_files)
-
-	# extract_devcontainer_file "$configFile"
-	# extract_docker_compose_file "$configFile"
-	# extract_environment_file "$configFile"
-	# extract_lifecyle_events "$configFile"
-	# extract_bash_aliases "$configFile" "$finished_dir}"
 
 	cp -r "$BUILD_OUTPUT_DIR/" "$PWD/.devcontainer/"
 
