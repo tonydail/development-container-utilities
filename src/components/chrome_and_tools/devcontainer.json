@@ -1,3 +1,5 @@
 {
-    "postCreateCommand": "bash -l .devcontainer/container-post-create.sh"
+  "features": {
+    "ghcr.io/tonydail/devcontainer-features/chromiumanddriver:1": {}
+  }
 }
