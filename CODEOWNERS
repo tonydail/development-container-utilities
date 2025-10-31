@@ -3,4 +3,4 @@
 
 # Global ownership - tonydail owns all files and folders
 # This pattern matches everything in the repository, including future additions
-* @tonydail
+* @tonydail @tonydail-secondary
