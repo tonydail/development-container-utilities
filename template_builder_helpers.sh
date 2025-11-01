@@ -1,7 +1,6 @@
 #!/usr/local/bin/bash
 
 CLEANUP_TEMPDIR=
-TEMP_DIR_SOURCE=
 SCRIPT_PATH=$(dirname "$0")    #the directory of this script
 CURRENT_DIR="$PWD"             #where this is executed from
 SOURCE_PATH="$SCRIPT_PATH/src" #the source path for the templates
@@ -11,6 +10,12 @@ COMPONENTS_PATH="$SOURCE_PATH/components"
 WORK_DIR_NAME_FORMAT="work_dir.XXXXXX"
 BUILD_DIR_NAME_FORMAT="build_dir.XXXXXX"
 BUILD_OUTPUT_DIR_NAME_FORMAT="build_output_dir.XXXXXX"
+
+# Set this to true to keep the build directory for debugging purposes.
+# This will create the build directory in the current working directory with a unique name.
+# This is useful for debugging the build process and inspecting the contents of the build directory while debugging this script.
+# If set to false, the build directory will be created in the system's temporary directory and will be automatically cleaned up after this script execution completes.
+DEBUG_BUILD_LOCATION=false
 
 #main working directory
 WORK_DIR=
@@ -62,8 +67,15 @@ get_temp_dir() {
 }
 
 cleanup_temps() {
+	if [[ "$DEBUG_BUILD_LOCATION" == "true" ]]; then
+		echo "Debug mode is enabled. Skipping cleanup of temp directories. Temp directory location: $CLEANUP_TEMPDIR"
+		return
+	fi
+	if [[ -z "$CLEANUP_TEMPDIR" ]]; then
+		echo "No temp directory to clean up."
+		return
+	fi
 	rm -rf "$CLEANUP_TEMPDIR"
-
 	echo "Removed temp dir: $CLEANUP_TEMPDIR"
 }
 
@@ -169,7 +181,6 @@ convert_yaml_to_json() {
 
 
 join_files() {
-	#local configFile="$1"
 	local FILE_1=
 	local FILE_2=
 	local COMPONENT_ARRAY=()
@@ -234,7 +245,7 @@ create_template_directory_structure() {
 build_devcontainer_config() {
 
 	TEMPLATE_BUILD_FILE="$TEMPLATES_PATH/$1"
-	if [[ "$DC_DEBUG" == "true" ]]; then
+	if [[ "$DEBUG_BUILD_LOCATION" == "true" ]]; then
 		WORK_DIR="$(get_temp_dir "$CURRENT_DIR" "$WORK_DIR_NAME_FORMAT")"
 	else
 		WORK_DIR="$(get_temp_dir)"
