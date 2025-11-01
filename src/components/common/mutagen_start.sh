@@ -61,26 +61,19 @@ done
 
 echo "Container '$CONTAINER_NAME' is ready!"
 
-# Load environment variables from .env file
-ENV_FILE="$devcontainer_path/.env"
-if [ -f "$ENV_FILE" ]; then
-	echo "Loading environment variables from $ENV_FILE"
-	set -a # Automatically export all variables
-	# shellcheck source=.env
-	source "$ENV_FILE"
-	set +a # Disable automatic export
+# Define ignore patterns from SYNC_EXCLUDES file or use defaults
+SYNC_EXCLUDES_FILE="$devcontainer_path/.sync_excludes"
+if [ -f "$SYNC_EXCLUDES_FILE" ]; then
+    echo "Loading ignore patterns from $SYNC_EXCLUDES_FILE"
+    # Read patterns from file, filtering out empty lines and comments
+    IGNORE_PATTERNS=()
+    while IFS= read -r line; do
+        IGNORE_PATTERNS+=("$line")
+    done < <(grep -v '^\s*#' "$SYNC_EXCLUDES_FILE" | grep -v '^\s*$')
+    echo "Loaded ${#IGNORE_PATTERNS[@]} ignore patterns"
 else
-	echo "Warning: .env file not found at $ENV_FILE"
-fi
-
-# Define ignore patterns from SYNC_EXCLUDES or use defaults
-if [ -n "$SYNC_EXCLUDES" ]; then
-	echo "Using ignore patterns from SYNC_EXCLUDES: $SYNC_EXCLUDES"
-	# Convert space-separated string to array
-	read -a IGNORE_PATTERNS <<<"$SYNC_EXCLUDES"
-else
-	echo "SYNC_EXCLUDES not found, no ignore patterns will be used"
-	IGNORE_PATTERNS=()
+    echo "SYNC_EXCLUDES file not found at $SYNC_EXCLUDES_FILE, no ignore patterns will be used"
+    IGNORE_PATTERNS=()
 fi
 
 # Check if a session with this name already exists and terminate it if so
