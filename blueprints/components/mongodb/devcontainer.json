@@ -1,0 +1,18 @@
+{
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "mongodb.mongodb-vscode"
+            ],
+            "settings": {
+                "mongodb.connections": [
+                    {
+                        "name": "MongoDB development-container-utilities",
+                        "connectionString": "mongodb://${env:MONGO_INITDB_ROOT_USERNAME}:${env:MONGO_INITDB_ROOT_PASSWORD}@${env:SERVICE_NAME}_mongodb:27017?authSource=admin"
+                    }
+                ]
+            }
+        }
+    },
+    "postCreateCommand": "bash -l .devcontainer/container-post-create.sh"
+}
