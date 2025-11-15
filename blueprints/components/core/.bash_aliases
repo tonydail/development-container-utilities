@@ -29,6 +29,31 @@ trash () { command mv "$@" ~/.Trash ; }     # trash:        Moves a file to the 
 #   ------------------------------------------
 alias lr='ls -R | grep ":$" | sed -e '\''s/:$//'\'' -e '\''s/[^-][^\/]*\//--/g'\'' -e '\''s/^/   /'\'' -e '\''s/-/|/'\'' | less'
 
+read_env_var() {
+	VAR_NAME=$1
+	DEFAULT_VALUE=${2:-}
+	VALUE=$(printenv "$VAR_NAME")
+	if [ -z "$VALUE" ]; then
+		VALUE=$(read_secret "$VAR_NAME");
+		if [ -z "$VALUE" ]; then
+			VALUE="$DEFAULT_VALUE"
+		fi
+		echo "$VALUE"
+	else
+		echo "$VALUE"
+	fi
+}	
+
+read_secret() {
+    SECRET_NAME="$1"
+    secret_file=$(eval echo \$"${SECRET_NAME}_FILE")
+    if [ -f "$secret_file" ]; then
+        cat "$secret_file" | tr -d '\n\r'
+    else
+        echo ""
+    fi
+}
+
 # End common aliases
 
 # Start git aliases
@@ -166,3 +191,5 @@ gdb()
 }  
 
 # End git aliases
+
+
