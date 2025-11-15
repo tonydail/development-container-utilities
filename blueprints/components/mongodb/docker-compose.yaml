@@ -1,0 +1,24 @@
+services:
+  mongodb:
+    extends:
+      service: service_base
+    image: mongo:latest
+    container_name: ${SERVICE_NAME}_mongodb
+    volumes:
+      - mongodb_data:/data/db
+  service_base:
+    secrets:
+        - mongo_root_username
+        - mongo_root_password
+    environment:
+        MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_root_username
+        MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_root_password
+secrets:
+  mongo_root_username:
+    file: ./secrets/mongo_root_username.txt
+  mongo_root_password:
+    file: ./secrets/mongo_root_password.txt
+
+volumes:
+  mongodb_data:
+    driver: local

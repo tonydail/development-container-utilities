@@ -1,9 +1,9 @@
 #!/usr/local/bin/bash
 
 CLEANUP_TEMPDIR=
-SCRIPT_PATH=$(dirname "$0")    #the directory of this script
+MAIN_PATH="$(realpath "$(dirname "$0")/../..")"  #path to root of project
 CURRENT_DIR="$PWD"             #where this is executed from
-SOURCE_PATH="$SCRIPT_PATH/src" #the source path for the templates
+SOURCE_PATH="$MAIN_PATH/blueprints" #the source path for the templates
 TEMPLATES_PATH="$SOURCE_PATH/templates"
 COMPONENTS_PATH="$SOURCE_PATH/components"
 
@@ -26,10 +26,11 @@ BUILD_OUTPUT_DIR=
 
 TEMPLATE_COMPONENTS=
 
-# region common functions
+# region utility functions
 get_unique_filenames() {
 	local DIRECTORIES=("$@")
-	local temp_file="$(get_temp_file "$BUILD_DIR")"
+	local temp_file
+	temp_file="$(get_temp_file "$BUILD_DIR")"
 	for DIRECTORY in "${DIRECTORIES[@]}"; do
 		if [ -d "$DIRECTORY" ]; then
 			find "$DIRECTORY" -maxdepth 1 -type f -exec basename {} \; >>"$temp_file"
@@ -200,21 +201,21 @@ join_files() {
 
 	
 
-	for UNIQIUE_FILE in "${UNIQUE_FILES[@]}"; do
+	for UNIQUE_FILE in "${UNIQUE_FILES[@]}"; do
 		COMPONENT_ARRAY=("${COMPONENT_ARRAY[@]}")
 		for COMPONENT in "${COMPONENT_ARRAY[@]}"; do
-			FILE_1="$WORK_DIR/$COMPONENT/$UNIQIUE_FILE"
+			FILE_1="$WORK_DIR/$COMPONENT/$UNIQUE_FILE"
 			if [ -f "$FILE_1" ]; then
 				FILE_2=$(concatenate_files "$BUILD_DIR" "$FILE_1" "$FILE_2")
 			fi
 		done
 		if [ -f "$FILE_2" ]; then
-			UNIQIUE_FILE_OUTPUT="$BUILD_OUTPUT_DIR/$UNIQIUE_FILE"
-			cp "$FILE_2" "$UNIQIUE_FILE_OUTPUT"
+			UNIQUE_FILE_OUTPUT="$BUILD_OUTPUT_DIR/$UNIQUE_FILE"
+			cp "$FILE_2" "$UNIQUE_FILE_OUTPUT"
 
 			#make shell scripts executable
-			if [ ".${UNIQIUE_FILE_OUTPUT##*.}" == ".sh" ]; then
-				chmod +x "$UNIQIUE_FILE_OUTPUT"
+			if [ ".${UNIQUE_FILE_OUTPUT##*.}" == ".sh" ]; then
+				chmod +x "$UNIQUE_FILE_OUTPUT"
 			fi
 		fi
 		FILE_1=
@@ -222,7 +223,27 @@ join_files() {
 	done
 
 }
-# end region common functions
+
+handle_secret_files() {
+	local COMPONENT_ARRAY=()
+
+	IFS=',' read -ra COMPONENT_ARRAY <<<"$TEMPLATE_COMPONENTS"
+
+	DIRECTORIES=()
+	# Loop through the original array and prepend the WORK_DIR and append /secrets to each element
+	for DIRECTORY in "${COMPONENT_ARRAY[@]}"; do
+		DIRECTORIES+=("${WORK_DIR}/${DIRECTORY}/secrets")
+	done
+
+	for secretfolder in "${DIRECTORIES[@]}"; do
+		if [ -d "$secretfolder" ]; then
+			cp -r "$secretfolder" "$BUILD_OUTPUT_DIR/secrets/"
+		fi
+
+	done
+
+}
+# end region utility functions
 
 set_template_file_components() {
 	local json_file="$1"
@@ -243,8 +264,23 @@ create_template_directory_structure() {
 
 # end region template build functions
 build_devcontainer_config() {
+	local template_file="$1"
+	
+	# Validate input
+	if [[ -z "$template_file" ]]; then
+		echo "Error: Template file not specified" >&2
+		return 1
+	fi
 
-	TEMPLATE_BUILD_FILE="$TEMPLATES_PATH/$1"
+	TEMPLATE_BUILD_FILE="$TEMPLATES_PATH/$template_file"
+	
+	# Check if template file exists
+	if [[ ! -f "$TEMPLATE_BUILD_FILE" ]]; then
+		echo "Error: Template file does not exist: $TEMPLATE_BUILD_FILE" >&2
+		return 1
+	fi
+	
+	# Set up directories
 	if [[ "$DEBUG_BUILD_LOCATION" == "true" ]]; then
 		WORK_DIR="$(get_temp_dir "$CURRENT_DIR" "$WORK_DIR_NAME_FORMAT")"
 	else
@@ -256,14 +292,22 @@ build_devcontainer_config() {
 
 	CLEANUP_TEMPDIR="$WORK_DIR"
 
+	# Process template
 	set_template_file_components "$TEMPLATE_BUILD_FILE"
 	create_template_directory_structure
 
 	join_files
+	handle_secret_files
 
-	cp -r "$BUILD_OUTPUT_DIR/" "$PWD/.devcontainer/"
+	# Create output directory if it doesn't exist
+	# mkdir -p "$PWD/.devcontainer"
+	# cp -r "$BUILD_OUTPUT_DIR"/* "$PWD/.devcontainer/"
+
+	cp -r "$BUILD_OUTPUT_DIR"/ "$PWD/.devcontainer/"
 
 	cleanup_temps
+	
+	echo "Successfully built devcontainer configuration from template: $template_file"
 }
 
 #main entry point
@@ -271,12 +315,35 @@ ACTION=$1
 
 case $ACTION in
 "build")
+	if [[ -z "$2" ]]; then
+		echo "Error: Template file not specified for build action" >&2
+		echo "Usage: $0 build <template_file.json>" >&2
+		exit 1
+	fi
 	build_devcontainer_config "$2"
 	;;
 "jsontoyaml")
+	if [[ -z "$2" ]] || [[ -z "$3" ]]; then
+		echo "Error: Input and output files required for jsontoyaml action" >&2
+		echo "Usage: $0 jsontoyaml <input.json> <output.yaml>" >&2
+		exit 1
+	fi
 	convert_json_to_yaml "$2" "$3"
 	;;
 "yamltojson")
+	if [[ -z "$2" ]] || [[ -z "$3" ]]; then
+		echo "Error: Input and output files required for yamltojson action" >&2
+		echo "Usage: $0 yamltojson <input.yaml> <output.json>" >&2
+		exit 1
+	fi
 	convert_yaml_to_json "$2" "$3"
+	;;
+*)
+	echo "Error: Unknown action '$ACTION'" >&2
+	echo "Usage: $0 {build|jsontoyaml|yamltojson} [arguments...]" >&2
+	echo "  build <template_file.json>        - Build devcontainer from template"
+	echo "  jsontoyaml <input.json> <output.yaml> - Convert JSON to YAML"
+	echo "  yamltojson <input.yaml> <output.json> - Convert YAML to JSON"
+	exit 1
 	;;
 esac
