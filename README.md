@@ -21,7 +21,7 @@ This project provides a flexible, component-based approach to building developme
 development-container-utilities/
 ├── src/
 │   ├── components/          # Reusable container components
-│   │   ├── common/         # Base configuration (Docker, Git, VS Code)
+│   │   ├── core/           # Base configuration (Docker, Git, VS Code)
 │   │   ├── node/           # Node.js development setup
 │   │   ├── mongodb/        # MongoDB database component
 │   │   └── chrome_and_tools/ # Browser and testing tools
@@ -36,7 +36,7 @@ development-container-utilities/
 
 ## 🛠️ Components
 
-### Common Component
+### Core Component
 Base development environment with:
 - Docker-in-Docker support
 - Git configuration and GitHub CLI
@@ -131,7 +131,7 @@ Templates are JSON files that define component combinations:
     "description": "Multi-container development environment",
     "components": [
         {
-            "component": "common",
+            "component": "core",
             "build-order": 1
         },
         {

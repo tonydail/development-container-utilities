@@ -2,4 +2,4 @@
 .unison
 .env
 ./.unison
-
+**/secrets/

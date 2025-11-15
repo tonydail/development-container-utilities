@@ -96,8 +96,6 @@ install_mongosh() {
 mongo_main() {
     log_info "Starting MongoDB components installation..."
 
-	validate_environment_variables "MONGO_INITDB_ROOT_USERNAME" "MONGO_INITDB_ROOT_PASSWORD" || exit 1
-    
     # Perform installation steps
     update_package_lists || exit 1
     install_packages "gnupg" "curl" || exit 1
